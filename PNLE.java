@@ -48,8 +48,8 @@ public class PNLE {
         //Determine maximum number of files and generate chosen random number
         int numOfFiles = questions.length;
 
-        System.out.println(questions[0].getName());
-        System.out.println(ZonedDateTime.of(LocalDateTime.now(),ZoneId.systemDefault()).toInstant().toEpochMilli());
+        //System.out.println(questions[0].getName());
+        //System.out.println(ZonedDateTime.of(LocalDateTime.now(),ZoneId.systemDefault()).toInstant().toEpochMilli());
 
         JFrame frame = new JFrame("PNLE Exam");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -69,7 +69,7 @@ public class PNLE {
             {
                 if(e.getActionCommand()=="Banana")
                 {
-                    System.out.println("ababa");
+                    //System.out.println("ababa");
                     //start.setVisible(false);
 
                     CardLayout c = (CardLayout)(questionPanel.getLayout());
@@ -83,43 +83,17 @@ public class PNLE {
                 }
                 try
                 {
-                    // TODO Auto-generated method stub
-                    System.out.println(e.getActionCommand());
+
                     String[] params = e.getActionCommand().split("\\*");
                     File[] questions = new File(params[2]).listFiles();
                     File[] answers = new File(params[3]).listFiles();
-                    
-                    // Step 2: Sort both arrays by filename to ensure correct matching before shuffling
-                    Arrays.sort(questions, Comparator.comparing(File::getName));
-                    Arrays.sort(answers, Comparator.comparing(File::getName));
-
-                    // Step 3: Pair them up
-                    ArrayList<Pair<File, File>> pairedList = new ArrayList<>();
-                    for (int i = 0; i < questions.length; i++) {
-                        pairedList.add(new Pair<>(questions[i], answers[i]));
-                    }
-
-                    // Step 4: Shuffle the pairs
-                    Collections.shuffle(pairedList);
-
-                    // Step 5: Unpack the shuffled pairs
-                    File[] shuffledQuestions = new File[pairedList.size()];
-                    File[] shuffledAnswers = new File[pairedList.size()];
-
-                    for (int i = 0; i < pairedList.size(); i++) {
-                        shuffledQuestions[i] = pairedList.get(i).getKey();
-                        shuffledAnswers[i] = pairedList.get(i).getValue();
-                    }
-
-
-                    System.out.println(params[0]);
                 
                     if(params[0].compareTo("SECTION")==0)
                     {
                         
-                        System.out.println("dwaghueros");
+                        //System.out.println("dwaghueros");
                         questionPanel.removeAll();
-                        questionPanel=loadContents(questionPanel, params[1],shuffledQuestions,shuffledAnswers);
+                        questionPanel=loadContents(questionPanel, params[1],questions,answers);
                         questionPanel.repaint();
                         //start.setText("START " + params[1]);
                         //start.setVisible(true);
@@ -159,7 +133,7 @@ public class PNLE {
             public void actionPerformed(ActionEvent e) {
                 if(e.getSource()==start)
                 {
-                    System.out.println("START");
+                    //System.out.println("START");
                     card.next(questionPanel);
                     start.setVisible(false);
                 }
@@ -210,13 +184,13 @@ public class PNLE {
                 // TODO Auto-generated method stub
                 if(e.getActionCommand().equals("prev"))
                 {
-                    System.out.println("Prevcard");
+                    //System.out.println("Prevcard");
                     c.previous(questionPanel);
                 }
                     
                 if(e.getActionCommand().equals("next"))
                 {
-                    System.out.println("nextcard");
+                    //System.out.println("nextcard");
                     c.next(questionPanel);
                 }
                     
@@ -227,18 +201,17 @@ public class PNLE {
         for(int x = 0; x<questions.length;x++)
         {
             try 
-            (
+            {
                 BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(questions[x]), StandardCharsets.UTF_8));
                 BufferedReader abr = new BufferedReader(new InputStreamReader(new FileInputStream(answers[x]), StandardCharsets.UTF_8));
-            ) 
-            {
                 String line;
                 
                 while ((line = br.readLine()) != null)
                 {
-                    if(line.compareTo("")==0)
+                    if(line.trim().isEmpty())
                         continue;
-                    System.out.println(line);
+                    if(x==2)
+                        System.out.println("line: "+line);
                     JLabel label = new JLabel();
                     label.setFont(font);
                     JComboBox jop = new JComboBox<>(ops);
@@ -268,10 +241,32 @@ public class PNLE {
                     simPanel.add(label,gbc);
                     if(counter==4)
                     {
-                        String raw = abr.readLine();
-                        String[] ans = {raw.substring(raw.indexOf("(")+1, raw.indexOf(")")), raw.substring(raw.indexOf(")")+2)};
-                        System.out.println(ans[0]);
-                        System.out.println(ans[1]);
+                        String raw="";
+                        String letter="";
+                        String ratio="";
+                        try {
+                            raw = abr.readLine();
+                            if (raw.startsWith("Answer:")) {
+                                // Format: Answer: (C) explanation...
+                                int start = raw.indexOf("(") + 1;
+                                int end = raw.indexOf(")");
+                                letter = raw.substring(start, end);
+                                ratio = raw.substring(end + 2);  // Skip ") "
+                            } else {
+                                // Format: D. statement...
+                                letter = raw.substring(0, raw.indexOf(".")).trim();
+                                ratio = raw.substring(raw.indexOf(".") + 1).trim();
+                            }
+                        } catch (Exception e) {
+                            // TODO: handle exception
+                            System.out.println(e.getLocalizedMessage());
+                            System.out.println("X : " + x);
+                            System.out.println(raw);
+                            System.out.println(line);
+                        } 
+                        String[] ans = {letter,ratio};
+                        //System.out.println(ans[0]);
+                        //System.out.println(ans[1]);
                         
                         gbc.gridy=5;
                         gbc.gridx=2;
@@ -279,9 +274,13 @@ public class PNLE {
                         simPanel.add(jop,gbc);
 
                         JButton prev = new JButton("Previous");
+                        prev.setFont(font);
                         JButton next = new JButton("Next");
-                        JButton check = new JButton("check");
+                        next.setFont(font);
+                        JButton check = new JButton("Check");
+                        check.setFont(font);
                         JLabel ansLabel = new JLabel("<html><body style='width: 800px'>" + ans[0]+ " : " +ans[1] + "</body></html>");
+                        ansLabel.setFont(font);
                         ansLabel.setVisible(false);
 
                         prev.setActionCommand("prev");
@@ -295,13 +294,13 @@ public class PNLE {
                             {
                                 if(e.getActionCommand().equals("check"))
                                 {
-                                    System.out.println("checkansw");
+                                    //System.out.println("checkansw");
                                     ((JButton)e.getSource()).setEnabled(false);
-                                    System.out.println(jop.getSelectedItem().toString());
+                                    //System.out.println(jop.getSelectedItem().toString());
                                     if(jop.getSelectedItem().toString().compareTo(ans[0])==0)
                                     {
-                                        System.out.println(ans[0]);
-                                        System.out.println("Correct");
+                                        //System.out.println(ans[0]);
+                                        //System.out.println("Correct");
                                         corrects++;
                                     }
                                     total++;
@@ -346,8 +345,14 @@ public class PNLE {
                     else
                         counter++;        
                 }
+                br.close();
+                abr.close();
             }
-            catch(Exception e){System.out.println(e.getLocalizedMessage());}
+            catch(Exception e)
+            {
+                System.out.println(e.getLocalizedMessage());
+                System.out.println("I was activated");
+            }
         }
 
         return questionPanel;
