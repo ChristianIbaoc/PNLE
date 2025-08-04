@@ -4,13 +4,14 @@ import javax.swing.plaf.DimensionUIResource;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Random;
-import java.util.Set;
 import java.util.random.*;
 import java.time.*;
 import java.awt.*;
@@ -20,8 +21,15 @@ import java.awt.event.ActionListener;
 public class PNLE {
 
     JPanel questionPanel;
+    JPanel simPanel;
+    JPanel currentStatusPanel = new JPanel();
+    int corrects=0;
+    int total = 0;
+    float overall = 0;
+    Font font;
     PNLE()
     {
+        font = new Font("Arial", 0,20);
         ActionListener ad = null;
         //Create objects and paths
         String path = new File("").getAbsolutePath();
@@ -29,10 +37,10 @@ public class PNLE {
         File answersFolder = new File(path+"/answers");
         FileSystem fs = FileSystems.getDefault();
         RandomGenerator rand = new Random(ZonedDateTime.of(LocalDateTime.now(),ZoneId.systemDefault()).toInstant().toEpochMilli());
-        JButton start = new JButton("SELECT CLASS ABOVE");
-        start.setActionCommand("Banana");
-        start.setVisible(true);
-        start.setEnabled(false);
+        //JButton start = new JButton("SELECT CLASS ABOVE");
+        //start.setActionCommand("Banana");
+        //start.setVisible(true);
+        //start.setEnabled(false);
         //Create arrays of files inside questions and answers
         File[] questions = questionsFolder.listFiles();
         File[] answers = answersFolder.listFiles();
@@ -62,7 +70,7 @@ public class PNLE {
                 if(e.getActionCommand()=="Banana")
                 {
                     System.out.println("ababa");
-                    start.setVisible(false);
+                    //start.setVisible(false);
 
                     CardLayout c = (CardLayout)(questionPanel.getLayout());
                     c.show(questionPanel, "card1");
@@ -80,24 +88,49 @@ public class PNLE {
                     String[] params = e.getActionCommand().split("\\*");
                     File[] questions = new File(params[2]).listFiles();
                     File[] answers = new File(params[3]).listFiles();
+                    
+                    // Step 2: Sort both arrays by filename to ensure correct matching before shuffling
+                    Arrays.sort(questions, Comparator.comparing(File::getName));
+                    Arrays.sort(answers, Comparator.comparing(File::getName));
+
+                    // Step 3: Pair them up
+                    ArrayList<Pair<File, File>> pairedList = new ArrayList<>();
+                    for (int i = 0; i < questions.length; i++) {
+                        pairedList.add(new Pair<>(questions[i], answers[i]));
+                    }
+
+                    // Step 4: Shuffle the pairs
+                    Collections.shuffle(pairedList);
+
+                    // Step 5: Unpack the shuffled pairs
+                    File[] shuffledQuestions = new File[pairedList.size()];
+                    File[] shuffledAnswers = new File[pairedList.size()];
+
+                    for (int i = 0; i < pairedList.size(); i++) {
+                        shuffledQuestions[i] = pairedList.get(i).getKey();
+                        shuffledAnswers[i] = pairedList.get(i).getValue();
+                    }
+
+
                     System.out.println(params[0]);
                 
                     if(params[0].compareTo("SECTION")==0)
                     {
                         
                         System.out.println("dwaghueros");
-                        questionPanel=loadContents(questionPanel, params[1],questions,answers);
+                        questionPanel.removeAll();
+                        questionPanel=loadContents(questionPanel, params[1],shuffledQuestions,shuffledAnswers);
                         questionPanel.repaint();
-                        start.setText("START " + params[1]);
-                        start.setVisible(true);
-                        start.setEnabled(true);
-                        start.repaint();
+                        //start.setText("START " + params[1]);
+                        //start.setVisible(true);
+                        //start.setEnabled(true);
+                        //start.repaint();
                     }
                 } catch (ArrayIndexOutOfBoundsException x){}
             }
             
         };
-        start.addActionListener(ad);
+        //start.addActionListener(ad);
         //add ribbon options
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
@@ -136,11 +169,10 @@ public class PNLE {
         });
         */
         c.weighty=1;
-        mainPanel.add(start,c);
+        //mainPanel.add(start,c);
         mainPanel.add(questionPanel,c);
         c.weighty=0.05;
-        JPanel currentStatusPanel = new JPanel();
-        currentStatusPanel.add(new JLabel("Current Status: "));
+        currentStatusPanel.add(new JLabel("Correct Answers / Total Answers: " + corrects +" / "+ total + "(" + overall + "%)"));
         mainPanel.add(currentStatusPanel,c);
 
         frame.add(mainPanel);
@@ -162,16 +194,43 @@ public class PNLE {
         GridBagConstraints gbc = new GridBagConstraints();
         simPanel.setLayout(new GridBagLayout());
         gbc.fill = GridBagConstraints.BOTH;
-        gbc.gridx=0;
-        gbc.gridwidth=GridBagConstraints.REMAINDER;
+        gbc.gridx=1;
+        gbc.gridwidth=3;
+        gbc.insets = new Insets(10, 50, 10, 50);
         questionPanel.setLayout(c);
-        System.out.println(questions[0]);
         int counter = 0;
         int card = 1;
 
+        String[] ops = {"A","B","C","D"};
+
+        ActionListener ad = new ActionListener() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TODO Auto-generated method stub
+                if(e.getActionCommand().equals("prev"))
+                {
+                    System.out.println("Prevcard");
+                    c.previous(questionPanel);
+                }
+                    
+                if(e.getActionCommand().equals("next"))
+                {
+                    System.out.println("nextcard");
+                    c.next(questionPanel);
+                }
+                    
+            }
+            
+        };
+
         for(int x = 0; x<questions.length;x++)
         {
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(questions[0]), StandardCharsets.UTF_8))) 
+            try 
+            (
+                BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(questions[x]), StandardCharsets.UTF_8));
+                BufferedReader abr = new BufferedReader(new InputStreamReader(new FileInputStream(answers[x]), StandardCharsets.UTF_8));
+            ) 
             {
                 String line;
                 
@@ -181,9 +240,13 @@ public class PNLE {
                         continue;
                     System.out.println(line);
                     JLabel label = new JLabel();
+                    label.setFont(font);
+                    JComboBox jop = new JComboBox<>(ops);
+                    jop.setActionCommand("jop");
+                    jop.addActionListener(ad);
                     switch (counter) {
                         case 0:
-                            label.setText(line);
+                            label.setText("<html><body style='width: 900px'>" + line + "</body></html>");
                             break;
                         case 1:
                             label.setText("A: "+line);
@@ -200,36 +263,88 @@ public class PNLE {
                             break;
                     }
                     gbc.gridy=counter;
+                    gbc.gridx=1;
+                    gbc.gridwidth=5;
                     simPanel.add(label,gbc);
                     if(counter==4)
                     {
+                        String raw = abr.readLine();
+                        String[] ans = {raw.substring(raw.indexOf("(")+1, raw.indexOf(")")), raw.substring(raw.indexOf(")")+2)};
+                        System.out.println(ans[0]);
+                        System.out.println(ans[1]);
+                        
+                        gbc.gridy=5;
+                        gbc.gridx=2;
+                        gbc.gridwidth=2;
+                        simPanel.add(jop,gbc);
+
                         JButton prev = new JButton("Previous");
                         JButton next = new JButton("Next");
                         JButton check = new JButton("check");
-                        gbc.gridy=5;
-                        gbc.gridwidth=1;
+                        JLabel ansLabel = new JLabel("<html><body style='width: 800px'>" + ans[0]+ " : " +ans[1] + "</body></html>");
+                        ansLabel.setVisible(false);
+
+                        prev.setActionCommand("prev");
+                        next.setActionCommand("next");
+                        check.setActionCommand("check");
+                        prev.addActionListener(ad);
+                        next.addActionListener(ad);
+                        check.addActionListener(new ActionListener() 
+                        {
+                            public void actionPerformed(ActionEvent e)
+                            {
+                                if(e.getActionCommand().equals("check"))
+                                {
+                                    System.out.println("checkansw");
+                                    ((JButton)e.getSource()).setEnabled(false);
+                                    System.out.println(jop.getSelectedItem().toString());
+                                    if(jop.getSelectedItem().toString().compareTo(ans[0])==0)
+                                    {
+                                        System.out.println(ans[0]);
+                                        System.out.println("Correct");
+                                        corrects++;
+                                    }
+                                    total++;
+                                    overall=((float)corrects/total)*100;
+                                    currentStatusPanel.removeAll();
+                                    currentStatusPanel.add(new JLabel("Correct Answers / Total Answers: " + corrects +" / "+ total + "(" + overall + "%)"));
+                                    currentStatusPanel.repaint();
+                                    jop.setEnabled(false);
+                                    ansLabel.setVisible(true);
+                                }
+                            }
+                        });
+
+                        
+
+                        gbc.gridy=6;
+                        gbc.gridwidth=2;
                         gbc.gridx=0;
                         prev.setVisible(true);
                         prev.setEnabled(true);
                         gbc.weightx=1;
                         simPanel.add(prev,gbc);
-                        gbc.gridx=1;
-                        simPanel.add(check,gbc);
                         gbc.gridx=2;
+                        simPanel.add(check,gbc);
+                        gbc.gridx=4;
                         simPanel.add(next,gbc);
+                        
+                        gbc.gridx=1;
+                        gbc.gridwidth=5;
+                        gbc.gridy=8;
+
+                        simPanel.add(ansLabel,gbc);
                         gbc.gridx=0;
                         simPanel.revalidate();
                         simPanel.repaint();
-                    }
-                    counter++;
-                    if(counter==5)
-                    {
                         questionPanel.add(simPanel,"card"+card);
                         simPanel = new JPanel(new GridBagLayout());
+                        simPanel.setBackground(Color.decode("#ece7d5"));
                         counter=0;
                         card++;
                     }
-                        
+                    else
+                        counter++;        
                 }
             }
             catch(Exception e){System.out.println(e.getLocalizedMessage());}
