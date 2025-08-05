@@ -23,6 +23,7 @@ public class PNLE {
     JPanel questionPanel;
     JPanel simPanel;
     JPanel currentStatusPanel = new JPanel();
+    JLabel overallScore;
     int corrects=0;
     int total = 0;
     float overall = 0;
@@ -35,13 +36,7 @@ public class PNLE {
         String path = new File("").getAbsolutePath();
         File questionsFolder = new File(path+"/questions");
         File answersFolder = new File(path+"/answers");
-        FileSystem fs = FileSystems.getDefault();
-        RandomGenerator rand = new Random(ZonedDateTime.of(LocalDateTime.now(),ZoneId.systemDefault()).toInstant().toEpochMilli());
-        //JButton start = new JButton("SELECT CLASS ABOVE");
-        //start.setActionCommand("Banana");
-        //start.setVisible(true);
-        //start.setEnabled(false);
-        //Create arrays of files inside questions and answers
+
         File[] questions = questionsFolder.listFiles();
         File[] answers = answersFolder.listFiles();
 
@@ -50,7 +45,7 @@ public class PNLE {
 
         //System.out.println(questions[0].getName());
         //System.out.println(ZonedDateTime.of(LocalDateTime.now(),ZoneId.systemDefault()).toInstant().toEpochMilli());
-
+        JButton hideshow = new JButton("Hide");
         JFrame frame = new JFrame("PNLE Exam");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(new DimensionUIResource(1270, 720));
@@ -67,6 +62,17 @@ public class PNLE {
             @Override
             public void actionPerformed(ActionEvent e) 
             {
+                if(e.getActionCommand()=="hide")
+                {
+                    if(overallScore.isVisible())
+                    {
+                        overallScore.setVisible(false); hideshow.setText("Show");
+                    }
+                    else
+                    {
+                        overallScore.setVisible(true);  hideshow.setText("Hide");
+                    }
+                }
                 if(e.getActionCommand()=="Banana")
                 {
                     //System.out.println("ababa");
@@ -109,44 +115,28 @@ public class PNLE {
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;
         c.weightx=1.0;
-        c.weighty=0.1;
+        c.weighty=0.2;
+
         for(int x = 0; x < questions.length; x++)
         {
             if(x+1==questions.length)
                 c.gridwidth=GridBagConstraints.REMAINDER;
-            JButton b = new JButton(questions[x].getName());
+            JButton b = new JButton("<html><center>"+questions[x].getName()+"</center></html>");
             b.setActionCommand("SECTION*"+ b.getText() + "*" + questions[x].getAbsolutePath() + "*" + answers[x].getAbsolutePath());
+            
             b.addActionListener(ad);
             mainPanel.add(b,c);
         }
-        /*
-        c.weighty=1;
-        JPanel questionPanel = new JPanel();
-        questionPanel.setBackground(Color.decode("#ece7d5"));
-        CardLayout card = new CardLayout();
-        questionPanel.setLayout(card);
-        JButton start = new JButton("START");
-        start.setPreferredSize(new Dimension(300, 300));
-        start.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if(e.getSource()==start)
-                {
-                    //System.out.println("START");
-                    card.next(questionPanel);
-                    start.setVisible(false);
-                }
-                
-            }
-            
-        });
-        */
         c.weighty=1;
         //mainPanel.add(start,c);
         mainPanel.add(questionPanel,c);
         c.weighty=0.05;
-        currentStatusPanel.add(new JLabel("Correct Answers / Total Answers: " + corrects +" / "+ total + "(" + overall + "%)"));
+
+        hideshow.setActionCommand("hide");
+        hideshow.addActionListener(ad);
+        overallScore = new JLabel("Correct Answers / Total Answers: " + corrects +" / "+ total + "(" + overall + "%)");
+        currentStatusPanel.add(overallScore);
+        currentStatusPanel.add(hideshow);
         mainPanel.add(currentStatusPanel,c);
 
         frame.add(mainPanel);
@@ -210,8 +200,6 @@ public class PNLE {
                 {
                     if(line.trim().isEmpty())
                         continue;
-                    if(x==2)
-                        System.out.println("line: "+line);
                     JLabel label = new JLabel();
                     label.setFont(font);
                     JComboBox jop = new JComboBox<>(ops);
@@ -305,8 +293,9 @@ public class PNLE {
                                     }
                                     total++;
                                     overall=((float)corrects/total)*100;
-                                    currentStatusPanel.removeAll();
-                                    currentStatusPanel.add(new JLabel("Correct Answers / Total Answers: " + corrects +" / "+ total + "(" + overall + "%)"));
+                                    overallScore.setText("Correct Answers / Total Answers: " + corrects +" / "+ total + "(" + overall + "%)");
+                                    overallScore.repaint();
+                                    currentStatusPanel.revalidate();
                                     currentStatusPanel.repaint();
                                     jop.setEnabled(false);
                                     ansLabel.setVisible(true);
