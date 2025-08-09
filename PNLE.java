@@ -28,6 +28,7 @@ public class PNLE {
     int total = 0;
     float overall = 0;
     Font font;
+
     PNLE()
     {
         font = new Font("Arial", 0,20);
@@ -152,6 +153,7 @@ public class PNLE {
 
     JPanel loadContents(JPanel questionPanel, String section, File[] questions, File[] answers)
     {
+        shuffleArr(questions, answers);
         CardLayout c = new CardLayout();
         JPanel simPanel = new JPanel();
         simPanel.setBackground(Color.decode("#ece7d5"));
@@ -182,6 +184,20 @@ public class PNLE {
                 {
                     //System.out.println("nextcard");
                     c.next(questionPanel);
+                }
+                if(e.getActionCommand().equals("next25"))
+                {
+                    for(int i =0;i<25;i++)
+                    {
+                        c.next(questionPanel);
+                    }
+                }
+                if(e.getActionCommand().equals("prev25"))
+                {
+                    for(int i =0;i<25;i++)
+                    {
+                        c.previous(questionPanel);
+                    }
                 }
                     
             }
@@ -224,8 +240,8 @@ public class PNLE {
                             break;
                     }
                     gbc.gridy=counter;
-                    gbc.gridx=1;
-                    gbc.gridwidth=5;
+                    gbc.gridx=0;
+                    gbc.gridwidth=6;
                     simPanel.add(label,gbc);
                     if(counter==4)
                     {
@@ -234,7 +250,7 @@ public class PNLE {
                         String ratio="";
                         try {
                             raw = abr.readLine();
-                            if (raw.startsWith("Answer:")) {
+                            if (raw.startsWith("Answer:") || raw.startsWith("(")) {
                                 // Format: Answer: (C) explanation...
                                 int start = raw.indexOf("(") + 1;
                                 int end = raw.indexOf(")");
@@ -262,9 +278,13 @@ public class PNLE {
                         simPanel.add(jop,gbc);
 
                         JButton prev = new JButton("Previous");
+                        JButton prev25 = new JButton("<< 25");
+                        prev25.setFont(font);
                         prev.setFont(font);
                         JButton next = new JButton("Next");
+                        JButton next25 = new JButton(">> 25");
                         next.setFont(font);
+                        next25.setFont(font);
                         JButton check = new JButton("Check");
                         check.setFont(font);
                         JLabel ansLabel = new JLabel("<html><body style='width: 800px'>" + ans[0]+ " : " +ans[1] + "</body></html>");
@@ -272,10 +292,15 @@ public class PNLE {
                         ansLabel.setVisible(false);
 
                         prev.setActionCommand("prev");
+                        prev25.setActionCommand("prev25");
                         next.setActionCommand("next");
+                        next25.setActionCommand("next25");
                         check.setActionCommand("check");
+                        
                         prev.addActionListener(ad);
                         next.addActionListener(ad);
+                        prev25.addActionListener(ad);
+                        next25.addActionListener(ad);
                         check.addActionListener(new ActionListener() 
                         {
                             public void actionPerformed(ActionEvent e)
@@ -306,19 +331,25 @@ public class PNLE {
                         
 
                         gbc.gridy=6;
-                        gbc.gridwidth=2;
+                        gbc.gridwidth=1;
                         gbc.gridx=0;
                         prev.setVisible(true);
                         prev.setEnabled(true);
-                        gbc.weightx=1;
+                        gbc.weightx=0.8;
+                        simPanel.add(prev25,gbc);
+                        gbc.gridx=1;
                         simPanel.add(prev,gbc);
                         gbc.gridx=2;
+                        gbc.weightx=1;
                         simPanel.add(check,gbc);
                         gbc.gridx=4;
+                        gbc.weightx=0.5;
                         simPanel.add(next,gbc);
+                        gbc.gridx=5;
+                        simPanel.add(next25,gbc);
                         
-                        gbc.gridx=1;
-                        gbc.gridwidth=5;
+                        gbc.gridx=0;
+                        gbc.gridwidth=6;
                         gbc.gridy=8;
 
                         simPanel.add(ansLabel,gbc);
@@ -345,5 +376,21 @@ public class PNLE {
         }
 
         return questionPanel;
+    }
+
+    void shuffleArr(File[] arr, File[] arr2)
+    {
+            Random rnd = new Random();
+        for (int i = arr.length - 1; i > 0; i--)
+        {
+            int index = rnd.nextInt(i + 1);
+            // Simple swap
+            File a = arr[index];
+            File b = arr2[index];
+            arr[index] = arr[i];
+            arr2[index] = arr2[i];
+            arr[i] = a;
+            arr2[i] = b;
+        }
     }
 }
