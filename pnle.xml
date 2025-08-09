@@ -3,7 +3,7 @@
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
   <jar>C:\Users\Christian\OneDrive\Documents\Java Source Files\PNLE\PNLE\PNLE.jar</jar>
-  <outfile>C:\Users\Christian\Desktop\PNLE.exe</outfile>
+  <outfile>C:\Users\Christian\OneDrive\Documents\Java Source Files\PNLE\PNLE\PNLE.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir>.</chdir>

@@ -1,19 +1,11 @@
 import javax.swing.*;
 import javax.swing.plaf.DimensionUIResource;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Random;
-import java.util.random.*;
-import java.time.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -40,9 +32,6 @@ public class PNLE {
 
         File[] questions = questionsFolder.listFiles();
         File[] answers = answersFolder.listFiles();
-
-        //Determine maximum number of files and generate chosen random number
-        int numOfFiles = questions.length;
 
         //System.out.println(questions[0].getName());
         //System.out.println(ZonedDateTime.of(LocalDateTime.now(),ZoneId.systemDefault()).toInstant().toEpochMilli());
